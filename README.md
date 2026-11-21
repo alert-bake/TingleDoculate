@@ -17,7 +17,8 @@ It is designed to keep the build pipeline understandable and the generated site 
 - Relative Markdown links rewritten to generated HTML pages
 - Client-side search index
 - Incremental page rendering
-- Responsive theme with light/dark system preference support
+- Responsive theme with independently configurable light and dark palettes
+- Built-in SVG sun/moon theme toggle with saved visitor preference
 - Static asset copying
 - Local preview server
 
@@ -52,7 +53,38 @@ output = "site"
 
 [build]
 incremental = true
+
+[theme]
+default_mode = "dark" # "dark" or "light"
+
+[theme.dark]
+background = "#101114"
+surface = "#191B20"
+surface_secondary = "#22252B"
+text = "#E6E8ED"
+text_muted = "#A0A5B0"
+primary = "#8B9CF6"
+link = "#9AAEFF"
+link_hover = "#C0CBFF"
+border = "#30343D"
+code_background = "#1C1F26"
+
+[theme.light]
+background = "#FFFFFF"
+surface = "#F5F6F8"
+surface_secondary = "#EBEDF0"
+text = "#20232A"
+text_muted = "#686D78"
+primary = "#586BD6"
+link = "#4058C9"
+link_hover = "#263FAF"
+border = "#D9DCE3"
+code_background = "#F0F1F4"
 ```
+
+The `[theme.dark]` and `[theme.light]` sections are independent palettes. Set the colors you want in each; omitted or invalid colors use the built-in defaults. Colors currently accept hexadecimal notation (`#RGB`, `#RRGGBB`, or `#RRGGBBAA`).
+
+Visitors can switch modes with the sun/moon button in the sidebar. Their choice is saved in browser local storage. If they have not chosen a mode before, `default_mode` is used.
 
 Build and preview:
 
