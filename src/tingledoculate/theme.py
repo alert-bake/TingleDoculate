@@ -5,7 +5,7 @@ from pathlib import PurePosixPath
 import posixpath
 
 
-CSS = """\\
+CSS = """\
 :root{color-scheme:light dark;--bg:#fff;--panel:#f5f6f8;--text:#20242b;--muted:#687180;--line:#e1e4e8;--link:#315fc4;--code:#f0f2f5}
 @media(prefers-color-scheme:dark){:root{--bg:#111318;--panel:#191d24;--text:#e7eaf0;--muted:#a1a9b7;--line:#303642;--link:#91b4ff;--code:#202630}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -19,7 +19,7 @@ main{width:min(900px,100%);padding:54px clamp(22px,6vw,76px);margin:0 auto}main 
 @media(max-width:760px){.layout{display:block}.sidebar{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:16px}.nav{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0 0}.nav li{margin:0}.nav .depth-1,.nav .depth-2,.nav .depth-3{padding-left:0}main{padding:30px 20px}main h1{font-size:1.8rem}}
 """
 
-JS = """\\
+JS = """\
 (() => {
   const input = document.querySelector('[data-search]');
   const results = document.querySelector('[data-search-results]');
