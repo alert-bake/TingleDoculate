@@ -1,0 +1,8 @@
+[site]
+title = "TingleDoculate"
+description = "It tingles. It doculates. It doesn't document."
+source = "docs"
+output = "site"
+
+[build]
+incremental = true

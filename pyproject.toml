@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tingledoculate"
+version = "0.1.0"
+description = "A lightweight, incremental static documentation generator."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["markdown-it-py>=3.0,<5"]
+
+[project.optional-dependencies]
+dev = []
+
+[project.scripts]
+tingledoculate = "tingledoculate.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
