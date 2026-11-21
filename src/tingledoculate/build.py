@@ -10,7 +10,7 @@ from .parser import make_markdown_parser, page_title, plain_text, rewrite_markdo
 from .theme import CSS, JS, render_page
 
 
-CACHE_VERSION = 2
+CACHE_VERSION = 3
 
 
 def _digest(value: bytes) -> str:
@@ -46,6 +46,7 @@ def build(root: Path, config_path: Path | None = None, force: bool = False) -> d
     config = _load_config(config_path)
     site_config = config.get("site", {})
     build_config = config.get("build", {})
+    theme_config = config.get("theme", {})
     source_dir = (root / site_config.get("source", "docs")).resolve()
     output_dir = (root / site_config.get("output", "site")).resolve()
     cache_dir = root / ".tingledoculate"
@@ -82,7 +83,7 @@ def build(root: Path, config_path: Path | None = None, force: bool = False) -> d
 
     nav = _navigation([(relative, output, title) for _, relative, output, _, title in source_records])
     global_fingerprint = _digest(
-        (json.dumps({"site": site_config, "nav": nav}, sort_keys=True) + CSS + JS).encode("utf-8")
+        (json.dumps({"site": site_config, "theme": theme_config, "nav": nav}, sort_keys=True) + CSS + JS).encode("utf-8")
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -117,7 +118,7 @@ def build(root: Path, config_path: Path | None = None, force: bool = False) -> d
             body = rewrite_markdown_links(parser.render(markdown))
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_text(
-                render_page(title, site_title, description, body, nav, PurePosixPath(output_relative.as_posix())),
+                render_page(title, site_title, description, body, nav, PurePosixPath(output_relative.as_posix()), theme_config),
                 encoding="utf-8",
             )
             search_record = {
