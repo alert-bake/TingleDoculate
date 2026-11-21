@@ -124,4 +124,4 @@ tingledoculate build
 
 ## License
 
-No license has been selected yet. Until one is added, normal copyright restrictions apply.
+TingleDoculate is licensed under the MIT License. See [LICENSE](LICENSE) for the full license text.
