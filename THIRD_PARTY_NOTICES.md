@@ -60,6 +60,7 @@ The bundled `home` and `search` Material icons are sourced from [Google's Materi
 
 - Copyright: Google and contributors
 - License: Apache License 2.0
-- License text: https://www.apache.org/licenses/LICENSE-2.0
+- License: [Apache License 2.0](LICENSES/Apache-2.0.txt)
+- Upstream license: https://www.apache.org/licenses/LICENSE-2.0
 
 The Material icon artwork remains under Apache-2.0. The `light_mode` glyph is a project-authored approximation and is not copied from Google's icon repository.
