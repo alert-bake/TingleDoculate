@@ -84,7 +84,7 @@ class BuildTests(unittest.TestCase):
             fence = chr(96) * 3
             (docs / "index.md").write_text(
                 '# Aizo\n\n<color="FF00FF">pink</color>\n\n'
-                + fence + 'python\nprint("hello")\n' + fence + '\n\n'
+                + fence + 'python\ndef greet():\n    print("hello")\n' + fence + '\n\n'
                 + '<script>alert(1)</script><strong>safe</strong>',
                 encoding="utf-8",
             )
