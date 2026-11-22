@@ -118,7 +118,7 @@ Insert bundled SVG icons with single tags:
 <icon="home" set="material">
 ```
 
-The default icon set is Lucide. Set `[icons].default_set` to `"material"` to use the bundled Material icons by default. Individual tags can override the default with `set="lucide"` or `set="material"`. Icons are emitted as inline SVG and inherit `currentColor`. The bundled catalogue is currently a small starter set; see [Third-party notices](THIRD_PARTY_NOTICES.md) for icon licensing.
+The default icon set is Lucide. Set `[icons].default_set` to `"material"` to use the bundled Material icons by default. Individual tags can override the default with `set="lucide"` or `set="material"`. Icons are emitted as inline SVG and inherit `currentColor`. The bundled catalogue is currently a small starter set. **Lucide icon artwork is ISC-licensed**, with a few Feather-derived icons under MIT; Material icon artwork is Apache-2.0. These third-party licenses are separate from TingleDoculate’s MIT license. See [Third-party notices](THIRD_PARTY_NOTICES.md).
 
 When `[markdown].html = true`, basic raw HTML is accepted and sanitized. Common formatting and layout tags are supported, while scripts, event handlers, unsafe URLs, and embedded active content are removed. Inline styles are restricted to a small set of presentation properties.
 
