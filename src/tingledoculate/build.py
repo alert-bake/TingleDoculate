@@ -17,7 +17,7 @@ from .parser import (
 from .theme import CSS, JS, render_page
 
 
-CACHE_VERSION = 4
+CACHE_VERSION = 5
 
 
 def _digest(value: bytes) -> str:
