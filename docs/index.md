@@ -298,12 +298,12 @@ A **Kennel** is a special fenced block for content that should be visualized ins
 Normal Markdown fences already use triple backticks. Kennels use a leading pipe to distinguish their syntax:
 
 ```md
-|\`\`\`mermaid
+|```mermaid
 graph TD
     A[Writer] --> B[Markdown]
     B --> C[TingleDoculate]
     C --> D[Website]
-|\`\`\`
+|```
 ```
 
 The opening line can include a renderer identifier after the fence. The closing line uses the same leading pipe and fence character.
