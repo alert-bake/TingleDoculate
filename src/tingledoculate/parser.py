@@ -14,6 +14,7 @@ from pygments.token import STANDARD_TYPES
 from pygments.util import ClassNotFound
 
 from .kennel import render_kennel
+from .icons import render_icon
 
 
 _MARKDOWN_LINK = re.compile(r"(?P<prefix>href=[\"'])(?P<url>[^\"']+\.md)(?P<suffix>(?:#[^\"']*)?[\"'])", re.IGNORECASE)
@@ -22,12 +23,16 @@ _WHITESPACE = re.compile(r"\s+")
 _HEX_COLOR = r"(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})"
 _COLOR_OPEN = re.compile(r'<color=["\'](#?' + _HEX_COLOR + r')["\']>', re.IGNORECASE)
 _COLOR_PLACEHOLDER = re.compile(r"TINGLECOLOROPEN(" + _HEX_COLOR + r")TINGLE", re.IGNORECASE)
+_ICON_TAG = re.compile(r'<icon="([^"<>]+)"(?:\s+set="(lucide|material)")?\s*/?>', re.IGNORECASE)
 _INLINE_CODE = re.compile(r"(\x60+)(.+?)(\1)")
 
 
-def _expand_color_tags(markdown: str) -> str:
+def _expand_color_tags(markdown: str, icon_config: dict | None = None, icons: list | None = None) -> str:
     """Replace HTMD color tags with safe placeholders, skipping code."""
     output: list[str] = []
+    icon_config = icon_config or {}
+    icons = icons if icons is not None else []
+    default_set = str(icon_config.get("default_set", "lucide")).lower()
     fence_char = ""
     fence_size = 0
 
@@ -52,7 +57,14 @@ def _expand_color_tags(markdown: str) -> str:
                 lambda match: "TINGLECOLOROPEN" + match.group(1).lstrip("#") + "TINGLE",
                 segment,
             )
-            return re.sub(r"</color\s*>", "TINGLECOLORCLOSE", segment, flags=re.IGNORECASE)
+            segment = re.sub(r"</color\s*>", "TINGLECOLORCLOSE", segment, flags=re.IGNORECASE)
+            def icon_replace(match):
+                icon_name = match.group(1)
+                icon_set = (match.group(2) or default_set).lower()
+                placeholder = f"TINGLEICON{len(icons)}END"
+                icons.append((placeholder, render_icon(icon_name, icon_set)))
+                return placeholder
+            return _ICON_TAG.sub(icon_replace, segment)
 
         pieces = _INLINE_CODE.split(line)
         for index, piece in enumerate(pieces):
@@ -180,16 +192,20 @@ def render_markdown(
     parser: MarkdownIt,
     markdown: str,
     markdown_config: dict | None = None,
+    icon_config: dict | None = None,
 ) -> str:
     """Render Markdown and replace HTMD color placeholders with safe spans."""
     config = markdown_config or {}
     env: dict = {}
-    rendered = parser.render(_expand_color_tags(markdown), env)
+    icons: list[tuple[str, str]] = []
+    rendered = parser.render(_expand_color_tags(markdown, icon_config, icons), env)
     rendered = _COLOR_PLACEHOLDER.sub(
         lambda match: '<span style="color:#' + match.group(1) + '">',
         rendered,
     )
     rendered = rendered.replace("TINGLECOLORCLOSE", "</span>")
+    for placeholder, icon_html in icons:
+        rendered = rendered.replace(placeholder, icon_html)
     if config.get("html", False):
         rendered = sanitize_html_fragment(rendered)
     for placeholder, kennel_html in env.get("_tingledoculate_kennels", []):
