@@ -33,7 +33,7 @@ def _expand_color_tags(markdown: str) -> str:
 
     for line in markdown.splitlines(keepends=True):
         stripped = line.lstrip()
-        fence = re.match(r"(?:\\|)?(\\x60{3,}|~{3,})", stripped)
+        fence = re.match(r"(?:\|)?(\x60{3,}|~{3,})", stripped)
         if fence:
             marker = fence.group(1)
             if not fence_char:
