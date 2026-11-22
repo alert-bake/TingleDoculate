@@ -22,7 +22,7 @@ _WHITESPACE = re.compile(r"\s+")
 _HEX_COLOR = r"(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})"
 _COLOR_OPEN = re.compile(r'<color=["\'](#?' + _HEX_COLOR + r')["\']>', re.IGNORECASE)
 _COLOR_PLACEHOLDER = re.compile(r"TINGLECOLOROPEN(" + _HEX_COLOR + r")TINGLE", re.IGNORECASE)
-_INLINE_CODE = re.compile(r"(\x60+)(.+?)\1")
+_INLINE_CODE = re.compile(r"(\x60+)(.+?)(\1)")
 
 
 def _expand_color_tags(markdown: str) -> str:
@@ -56,7 +56,8 @@ def _expand_color_tags(markdown: str) -> str:
 
         pieces = _INLINE_CODE.split(line)
         for index, piece in enumerate(pieces):
-            output.append(piece if index % 3 in (1, 2) else transform(piece))
+            # re.split includes the opening ticks, code contents, and closing ticks.
+            output.append(piece if index % 4 in (1, 2, 3) else transform(piece))
 
     return "".join(output)
 
@@ -163,6 +164,7 @@ def make_markdown_parser(
         return True
 
     parser.block.ruler.before("fence", "kennel", kennel_rule, {"alt": ["paragraph", "reference", "blockquote", "list"]})
+
     def render_kennel_token(self, tokens, idx, options, env):
         rendered = render_kennel(tokens[idx].info, tokens[idx].content)
         kennels = env.setdefault("_tingledoculate_kennels", [])
@@ -193,7 +195,6 @@ def render_markdown(
     for placeholder, kennel_html in env.get("_tingledoculate_kennels", []):
         rendered = rendered.replace(placeholder, kennel_html)
     return rendered
-
 
 
 def rewrite_markdown_links(rendered_html: str) -> str:
