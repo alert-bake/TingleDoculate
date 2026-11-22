@@ -204,10 +204,10 @@ def render_markdown(
         rendered,
     )
     rendered = rendered.replace("TINGLECOLORCLOSE", "</span>")
-    for placeholder, icon_html in icons:
-        rendered = rendered.replace(placeholder, icon_html)
     if config.get("html", False):
         rendered = sanitize_html_fragment(rendered)
+    for placeholder, icon_html in icons:
+        rendered = rendered.replace(placeholder, icon_html)
     for placeholder, kennel_html in env.get("_tingledoculate_kennels", []):
         rendered = rendered.replace(placeholder, kennel_html)
     return rendered
