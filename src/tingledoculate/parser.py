@@ -1,24 +1,155 @@
 from __future__ import annotations
 
+import copy
 import html
 import re
 from pathlib import PurePosixPath
 
+import nh3
 from markdown_it import MarkdownIt
+from pygments import highlight as pygments_highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import get_lexer_by_name, guess_lexer
+from pygments.styles import get_style_by_name
+from pygments.token import STANDARD_TYPES
+from pygments.util import ClassNotFound
 
 
-_MARKDOWN_LINK = re.compile(r'(?P<prefix>href=["\'])(?P<url>[^"\']+\.md)(?P<suffix>(?:#[^"\']*)?["\'])', re.IGNORECASE)
+_MARKDOWN_LINK = re.compile(r'(?P<prefix>href=["\\'])(?P<url>[^"\\']+\\.md)(?P<suffix>(?:#[^"\\']*)?["\\'])', re.IGNORECASE)
 _TAGS = re.compile(r"<[^>]+>")
-_WHITESPACE = re.compile(r"\s+")
+_WHITESPACE = re.compile(r"\\s+")
+_COLOR_OPEN = re.compile(r'<color=["\\'](#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?(?:[0-9a-fA-F]{2})?|[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?(?:[0-9a-fA-F]{2})?)["\\']>', re.IGNORECASE)
+_INLINE_CODE = re.compile(r"(`+)(.+?)\\1")
 
 
-def make_markdown_parser() -> MarkdownIt:
-    """Create the single Markdown parser configuration used by every page."""
-    return MarkdownIt("default", {"html": False, "linkify": False, "typographer": False})
+def _expand_color_tags(markdown: str) -> str:
+    """Translate HTMD color tags without touching fenced or inline code."""
+    output: list[str] = []
+    fence_char = ""
+    fence_size = 0
+
+    for line in markdown.splitlines(keepends=True):
+        stripped = line.lstrip()
+        fence = re.match(r"(`{3,}|~{3,})", stripped)
+        if fence:
+            marker = fence.group(1)
+            if not fence_char:
+                fence_char, fence_size = marker[0], len(marker)
+            elif marker[0] == fence_char and len(marker) >= fence_size:
+                fence_char, fence_size = "", 0
+            output.append(line)
+            continue
+
+        if fence_char:
+            output.append(line)
+            continue
+
+        def transform(segment: str) -> str:
+            segment = _COLOR_OPEN.sub(
+                lambda match: f'<span style="color:{match.group(1) if match.group(1).startswith("#") else "#" + match.group(1)}">',
+                segment,
+            )
+            return re.sub(r"</color\\s*>", "</span>", segment, flags=re.IGNORECASE)
+
+        pieces = _INLINE_CODE.split(line)
+        for index, piece in enumerate(pieces):
+            output.append(piece if index % 3 in (1, 2) else transform(piece))
+
+    return "".join(output)
+
+
+def _highlighter(highlight_config: dict):
+    enabled = bool(highlight_config.get("enabled", True))
+    guess = bool(highlight_config.get("guess_language", False))
+    style = str(highlight_config.get("theme", "monokai"))
+    if enabled:
+        get_style_by_name(style)  # Fail early with a useful error for an invalid theme.
+
+    def render(code: str, language: str, _attrs: str) -> str:
+        if not enabled or not language:
+            return ""
+        try:
+            lexer = get_lexer_by_name(language, stripall=False)
+        except ClassNotFound:
+            if not guess:
+                return ""
+            try:
+                lexer = guess_lexer(code)
+            except ClassNotFound:
+                return ""
+        formatter = HtmlFormatter(style=style, nowrap=True)
+        return pygments_highlight(code, lexer, formatter)
+
+    return render
+
+
+def make_highlight_css(highlight_config: dict | None = None) -> str:
+    """Return locally generated Pygments CSS for the configured style."""
+    config = highlight_config or {}
+    if not config.get("enabled", True):
+        return ""
+    style = str(config.get("theme", "monokai"))
+    return HtmlFormatter(style=style).get_style_defs("pre code")
+
+
+def sanitize_html_fragment(rendered_html: str) -> str:
+    """Keep common documentation HTML while removing unsafe markup and attributes."""
+    tags = set(nh3.ALLOWED_TAGS) | {
+        "center", "code", "div", "h1", "h2", "h3", "h4", "h5", "h6",
+        "hr", "kbd", "pre", "s", "span", "sub", "sup", "u",
+        "details", "summary", "mark", "small", "table", "thead",
+        "tbody", "tr", "th", "td",
+    }
+    attributes = {tag: set(values) for tag, values in nh3.ALLOWED_ATTRIBUTES.items()}
+    attributes.setdefault("*", set()).add("style")
+    attributes.setdefault("span", set()).add("class")
+    token_classes = set(STANDARD_TYPES.values()) | {"hll", "linenos"}
+    return nh3.clean(
+        rendered_html,
+        tags=tags,
+        clean_content_tags={"script", "style", "iframe", "object", "embed"},
+        attributes=attributes,
+        allowed_classes={"span": token_classes},
+        filter_style_properties={
+            "color", "background-color", "font-weight", "font-style",
+            "text-decoration", "text-align",
+        },
+    )
+
+
+def make_markdown_parser(
+    markdown_config: dict | None = None,
+    highlight_config: dict | None = None,
+) -> MarkdownIt:
+    """Create the shared Markdown/HTMD parser used by every page."""
+    markdown_config = markdown_config or {}
+    highlight_config = highlight_config or {}
+    return MarkdownIt(
+        "default",
+        {
+            "html": bool(markdown_config.get("html", False)),
+            "linkify": False,
+            "typographer": False,
+            "highlight": _highlighter(highlight_config),
+        },
+    )
+
+
+def render_markdown(
+    parser: MarkdownIt,
+    markdown: str,
+    markdown_config: dict | None = None,
+) -> str:
+    """Render Markdown plus HTMD conveniences, sanitizing enabled raw HTML."""
+    config = markdown_config or {}
+    rendered = parser.render(_expand_color_tags(markdown))
+    if config.get("html", False):
+        return sanitize_html_fragment(rendered)
+    return rendered
 
 
 def rewrite_markdown_links(rendered_html: str) -> str:
-    """Point rendered links at the generated .html pages instead of source .md files."""
+    """Point rendered links at generated .html pages instead of source .md files."""
     def replace(match: re.Match[str]) -> str:
         url = match.group("url")
         suffix = match.group("suffix")
@@ -36,7 +167,7 @@ def plain_text(rendered_html: str) -> str:
 def page_title(markdown: str, fallback: str) -> str:
     """Use the first Markdown H1 as the page title, falling back to its filename."""
     for line in markdown.splitlines():
-        match = re.match(r"^#\s+(.+?)\s*#*\s*$", line)
+        match = re.match(r"^#\\s+(.+?)\\s*#*\\s*$", line)
         if match:
             return match.group(1).strip()
     return fallback.replace("-", " ").replace("_", " ").title()
