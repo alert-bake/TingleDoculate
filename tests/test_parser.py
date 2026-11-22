@@ -38,6 +38,15 @@ class ParserTests(unittest.TestCase):
         self.assertIn('stroke="currentColor"', rendered)
         self.assertIn('fill="currentColor"', rendered)
 
+    def test_icon_tags_can_be_disabled_and_are_ignored_in_code(self):
+        parser = make_markdown_parser()
+        disabled = render_markdown(parser, '<icon="Sun">', icon_config={"enabled": False})
+        self.assertNotIn("td-icon", disabled)
+        self.assertIn("&lt;icon=", disabled)
+        code = render_markdown(parser, '`<icon="Sun">`')
+        self.assertIn("&lt;icon=", code)
+        self.assertNotIn("td-icon", code)
+
     def test_unknown_icon_has_visible_fallback(self):
         rendered = render_markdown(make_markdown_parser(), '<icon="NotARealIcon">')
         self.assertIn("Unknown lucide icon", rendered)
