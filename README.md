@@ -15,6 +15,7 @@ It is designed to keep the build pipeline understandable and the generated site 
 - Markdown-to-HTML rendering with HTMD extensions
 - Basic raw HTML support with sanitization
 - HTMD color tags for simple inline text coloring
+- Kennels for rendered content blocks, starting with static Mermaid flowcharts
 - Pygments syntax highlighting with configurable styles
 - Filesystem-derived navigation
 - Relative Markdown links rewritten to generated HTML pages
@@ -110,6 +111,22 @@ This is <color="#55D6A7">green text</color>.
 Color tags accept 3-, 6-, or 8-digit hexadecimal colors, with or without the leading `#`. They are translated into safe inline styles during the build. Color tags inside fenced and inline code are left untouched.
 
 When `[markdown].html = true`, basic raw HTML is accepted and sanitized. Common formatting and layout tags are supported, while scripts, event handlers, unsafe URLs, and embedded active content are removed. Inline styles are restricted to a small set of presentation properties.
+
+### Kennels
+
+Kennels are special fenced blocks for supported content that TingleDoculate renders visually instead of displaying as source code. The leading pipe distinguishes a kennel from an ordinary Markdown code fence:
+
+```md
+|\`\`\`mermaid
+graph TD
+    A[Markdown] --> B[TingleDoculate]
+    B --> C[Rendered website]
+|\`\`\`
+```
+
+The first renderer supports Mermaid `graph TD` and `flowchart TD` diagrams with basic rectangular, rounded, and diamond nodes, directed arrows, and labeled edges. Diagrams are rendered to self-contained SVG during the build; the published site does not load Mermaid from a CDN or execute diagram source in the browser. Unsupported Mermaid syntax is shown with an explanatory message and its source.
+
+Kennels are not ordinary code fences. A normal fence continues to display its source, even when its info string is `mermaid`.
 
 ### Syntax highlighting
 
