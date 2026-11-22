@@ -12,7 +12,10 @@ It is designed to keep the build pipeline understandable and the generated site 
 
 ## Features
 
-- Markdown-to-HTML rendering
+- Markdown-to-HTML rendering with HTMD extensions
+- Basic raw HTML support with sanitization
+- HTMD color tags for simple inline text coloring
+- Pygments syntax highlighting with configurable styles
 - Filesystem-derived navigation
 - Relative Markdown links rewritten to generated HTML pages
 - Client-side search index
@@ -54,6 +57,14 @@ output = "site"
 [build]
 incremental = true
 
+[markdown]
+html = true # Enabled HTML is sanitized during the build.
+
+[highlight]
+enabled = true
+theme = "monokai"
+guess_language = false
+
 [theme]
 default_mode = "dark" # "dark" or "light"
 
@@ -83,6 +94,44 @@ code_background = "#F0F1F4"
 ```
 
 The `[theme.dark]` and `[theme.light]` sections are independent palettes. Set the colors you want in each; omitted or invalid colors use the built-in defaults. Colors currently accept hexadecimal notation (`#RGB`, `#RRGGBB`, or `#RRGGBBAA`).
+
+### HTMD
+
+HTMD (Hypertext Markdown) extends ordinary Markdown rather than replacing it. Markdown syntax continues to work, while selected HTML and small authoring conveniences add flexibility.
+
+Color text with a compact tag:
+
+```md
+This is <color="FF00FF">pink text</color>.
+
+This is <color="#55D6A7">green text</color>.
+```
+
+Color tags accept 3-, 6-, or 8-digit hexadecimal colors, with or without the leading `#`. They are translated into safe inline styles during the build. Color tags inside fenced and inline code are left untouched.
+
+When `[markdown].html = true`, basic raw HTML is accepted and sanitized. Common formatting and layout tags are supported, while scripts, event handlers, unsafe URLs, and embedded active content are removed. Inline styles are restricted to a small set of presentation properties.
+
+### Syntax highlighting
+
+Fenced code blocks with a language label are highlighted locally at build time using Pygments:
+
+```python
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
+```
+
+Configure highlighting with:
+
+```toml
+[highlight]
+enabled = true
+theme = "monokai"
+guess_language = false
+```
+
+The `theme` value is a Pygments style name. Language guessing is disabled by default; unknown or unlabeled code blocks remain ordinary escaped code. Highlighting CSS is generated into the site's local stylesheet, so the published site does not need a JavaScript highlighter, CDN, or runtime dependency.
+
+Set `[markdown].html = false` to disable raw HTML input. HTMD color tags remain available because they are a separate Markdown extension.
 
 Visitors can switch modes with the sun/moon button in the sidebar. Their choice is saved in browser local storage. If they have not chosen a mode before, `default_mode` is used.
 
