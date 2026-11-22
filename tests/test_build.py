@@ -50,10 +50,10 @@ class BuildTests(unittest.TestCase):
             (docs / "index.md").write_text("# Home", encoding="utf-8")
             config = root / "tingledoculate.toml"
             config.write_text(
-                '[site]\nsource = "docs"\noutput = "site"\n'
-                '[theme]\ndefault_mode = "light"\n'
-                '[theme.dark]\nbackground = "#121212"\n'
-                '[theme.light]\nbackground = "#FAFAFA"\n',
+                '[site]\\nsource = "docs"\\noutput = "site"\\n'
+                '[theme]\\ndefault_mode = "light"\\n'
+                '[theme.dark]\\nbackground = "#121212"\\n'
+                '[theme.light]\\nbackground = "#FAFAFA"\\n',
                 encoding="utf-8",
             )
 
@@ -65,9 +65,9 @@ class BuildTests(unittest.TestCase):
             self.assertEqual(first["rendered"], 1)
 
             config.write_text(
-                '[site]\nsource = "docs"\noutput = "site"\n'
-                '[theme]\ndefault_mode = "dark"\n'
-                '[theme.dark]\nbackground = "#131313"\n',
+                '[site]\\nsource = "docs"\\noutput = "site"\\n'
+                '[theme]\\ndefault_mode = "dark"\\n'
+                '[theme.dark]\\nbackground = "#131313"\\n',
                 encoding="utf-8",
             )
             second = build(root)
@@ -75,6 +75,33 @@ class BuildTests(unittest.TestCase):
             updated = (root / "site" / "index.html").read_text(encoding="utf-8")
             self.assertIn('data-theme="dark"', updated)
             self.assertIn('--bg:#131313', updated)
+
+    def test_htmd_color_html_and_syntax_highlighting(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "index.md").write_text(
+                '# Aizo\\n\\n<color="FF00FF">pink</color>\\n\\n'
+                '```python\\nprint("hello")\\n```\\n\\n'
+                '<script>alert(1)</script><strong>safe</strong>',
+                encoding="utf-8",
+            )
+            (root / "tingledoculate.toml").write_text(
+                '[site]\\nsource = "docs"\\noutput = "site"\\n'
+                '[markdown]\\nhtml = true\\n'
+                '[highlight]\\nenabled = true\\ntheme = "monokai"\\n',
+                encoding="utf-8",
+            )
+
+            build(root)
+            page = (root / "site" / "index.html").read_text(encoding="utf-8")
+            css = (root / "site" / "assets" / "tingledoculate.css").read_text(encoding="utf-8")
+            self.assertIn('style="color:#FF00FF"', page)
+            self.assertIn("<strong>safe</strong>", page)
+            self.assertNotIn("<script>", page)
+            self.assertIn('class="k"', page)
+            self.assertIn("pre code .k", css)
 
 
 if __name__ == "__main__":
