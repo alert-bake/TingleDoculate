@@ -7,6 +7,14 @@ output = "site"
 [build]
 incremental = true
 
+[markdown]
+html = true # Raw HTML is sanitized before it reaches the generated site.
+
+[highlight]
+enabled = true
+theme = "monokai" # Any installed Pygments style.
+guess_language = false
+
 [theme]
 default_mode = "dark" # "dark" or "light"
 
