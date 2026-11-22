@@ -6,11 +6,18 @@ import shutil
 import tomllib
 from pathlib import Path, PurePosixPath
 
-from .parser import make_markdown_parser, page_title, plain_text, rewrite_markdown_links
+from .parser import (
+    make_highlight_css,
+    make_markdown_parser,
+    page_title,
+    plain_text,
+    render_markdown,
+    rewrite_markdown_links,
+)
 from .theme import CSS, JS, render_page
 
 
-CACHE_VERSION = 3
+CACHE_VERSION = 4
 
 
 def _digest(value: bytes) -> str:
@@ -47,6 +54,8 @@ def build(root: Path, config_path: Path | None = None, force: bool = False) -> d
     site_config = config.get("site", {})
     build_config = config.get("build", {})
     theme_config = config.get("theme", {})
+    markdown_config = config.get("markdown", {})
+    highlight_config = config.get("highlight", {})
     source_dir = (root / site_config.get("source", "docs")).resolve()
     output_dir = (root / site_config.get("output", "site")).resolve()
     cache_dir = root / ".tingledoculate"
@@ -82,19 +91,34 @@ def build(root: Path, config_path: Path | None = None, force: bool = False) -> d
         source_records.append((source, relative, _output_path(relative), source_hash, title))
 
     nav = _navigation([(relative, output, title) for _, relative, output, _, title in source_records])
+    highlight_css = make_highlight_css(highlight_config)
+    generated_css = CSS + "\n" + highlight_css
     global_fingerprint = _digest(
-        (json.dumps({"site": site_config, "theme": theme_config, "nav": nav}, sort_keys=True) + CSS + JS).encode("utf-8")
+        (
+            json.dumps(
+                {
+                    "site": site_config,
+                    "theme": theme_config,
+                    "markdown": markdown_config,
+                    "highlight": highlight_config,
+                    "nav": nav,
+                },
+                sort_keys=True,
+            )
+            + generated_css
+            + JS
+        ).encode("utf-8")
     )
 
     output_dir.mkdir(parents=True, exist_ok=True)
     assets_dir = output_dir / "assets"
     assets_dir.mkdir(parents=True, exist_ok=True)
-    (assets_dir / "tingledoculate.css").write_text(CSS, encoding="utf-8")
+    (assets_dir / "tingledoculate.css").write_text(generated_css, encoding="utf-8")
     (assets_dir / "tingledoculate.js").write_text(JS, encoding="utf-8")
 
     site_title = str(site_config.get("title", "Documentation"))
     description = str(site_config.get("description", ""))
-    parser = make_markdown_parser()
+    parser = make_markdown_parser(markdown_config, highlight_config)
     new_pages = {}
     search_pages = []
     rendered = skipped = 0
@@ -115,7 +139,7 @@ def build(root: Path, config_path: Path | None = None, force: bool = False) -> d
             skipped += 1
         else:
             markdown = source.read_text(encoding="utf-8")
-            body = rewrite_markdown_links(parser.render(markdown))
+            body = rewrite_markdown_links(render_markdown(parser, markdown, markdown_config))
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_text(
                 render_page(title, site_title, description, body, nav, PurePosixPath(output_relative.as_posix()), theme_config),
