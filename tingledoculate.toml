@@ -41,3 +41,7 @@ link = "#4058C9"
 link_hover = "#263FAF"
 border = "#D9DCE3"
 code_background = "#F0F1F4"
+
+[icons]
+enabled = true
+default_set = "lucide" # "lucide" or "material"
