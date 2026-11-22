@@ -41,5 +41,5 @@ def render_icon(name: str, icon_set: str = "lucide") -> str:
     return (
         f'<svg class="td-icon td-icon-material" xmlns="http://www.w3.org/2000/svg" '
         f'width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" '
-        f'aria-hidden="true" focusable="false">{paths}</svg>'
+        f'aria-hidden="true" focusable="false" style="vertical-align:-0.125em;display:inline-block">{paths}</svg>'
     )
