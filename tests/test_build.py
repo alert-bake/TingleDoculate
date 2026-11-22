@@ -100,7 +100,7 @@ class BuildTests(unittest.TestCase):
             css = (root / "site" / "assets" / "tingledoculate.css").read_text(encoding="utf-8")
             self.assertIn('style="color:#FF00FF"', page)
             self.assertIn("<strong>safe</strong>", page)
-            self.assertNotIn("<script>", page)
+            self.assertNotIn("alert(1)", page)
             self.assertIn('class="k"', page)
             self.assertIn("pre code .k", css)
 
