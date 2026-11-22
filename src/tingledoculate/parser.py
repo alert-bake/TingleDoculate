@@ -147,12 +147,12 @@ def make_markdown_parser(
         if state.sCount[start_line] > 3:
             return False
         line = state.src[state.bMarks[start_line]:state.eMarks[start_line]]
-        opening = re.match(r"^\\|(`{3,}|~{3,})(.*)$", line.strip())
+        opening = re.match(r"^\|(`{3,}|~{3,})(.*)$", line.strip())
         if not opening:
             return False
         marker, info = opening.groups()
         next_line = start_line + 1
-        closing_re = re.compile(r"^\\|" + re.escape(marker[0]) + r"{" + str(len(marker)) + r",}\\s*$")
+        closing_re = re.compile(r"^\|" + re.escape(marker[0]) + r"{" + str(len(marker)) + r",}\s*$")
         while next_line < end_line:
             candidate = state.src[state.bMarks[next_line]:state.eMarks[next_line]].strip()
             if closing_re.fullmatch(candidate):
