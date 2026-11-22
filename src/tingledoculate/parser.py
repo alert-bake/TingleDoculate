@@ -104,7 +104,6 @@ def sanitize_html_fragment(rendered_html: str) -> str:
     }
     attributes = {tag: set(values) for tag, values in nh3.ALLOWED_ATTRIBUTES.items()}
     attributes.setdefault("*", set()).add("style")
-    attributes.setdefault("span", set()).add("class")
     token_classes = set(STANDARD_TYPES.values()) | {"hll", "linenos"}
     return nh3.clean(
         rendered_html,
