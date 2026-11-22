@@ -28,11 +28,12 @@ _INLINE_CODE = re.compile(r"(\x60+)(.+?)(\1)")
 
 
 def _expand_color_tags(markdown: str, icon_config: dict | None = None, icons: list | None = None) -> str:
-    """Replace HTMD color tags with safe placeholders, skipping code."""
+    """Replace HTMD color and icon tags with placeholders, skipping code."""
     output: list[str] = []
     icon_config = icon_config or {}
     icons = icons if icons is not None else []
     default_set = str(icon_config.get("default_set", "lucide")).lower()
+    icons_enabled = bool(icon_config.get("enabled", True))
     fence_char = ""
     fence_size = 0
 
@@ -64,7 +65,7 @@ def _expand_color_tags(markdown: str, icon_config: dict | None = None, icons: li
                 placeholder = f"TINGLEICON{len(icons)}END"
                 icons.append((placeholder, render_icon(icon_name, icon_set)))
                 return placeholder
-            return _ICON_TAG.sub(icon_replace, segment)
+            return _ICON_TAG.sub(icon_replace, segment) if icons_enabled else segment
 
         pieces = _INLINE_CODE.split(line)
         for index, piece in enumerate(pieces):
@@ -194,7 +195,7 @@ def render_markdown(
     markdown_config: dict | None = None,
     icon_config: dict | None = None,
 ) -> str:
-    """Render Markdown and replace HTMD color placeholders with safe spans."""
+    """Render Markdown and restore safe HTMD color and icon placeholders."""
     config = markdown_config or {}
     env: dict = {}
     icons: list[tuple[str, str]] = []
