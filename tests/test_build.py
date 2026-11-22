@@ -85,13 +85,14 @@ class BuildTests(unittest.TestCase):
             (docs / "index.md").write_text(
                 '# Aizo\n\n<color="FF00FF">pink</color>\n\n'
                 + fence + 'python\ndef greet():\n    print("hello")\n' + fence + '\n\n'
-                + '<script>alert(1)</script><strong>safe</strong>',
+                + '<icon="Sun"><script>alert(1)</script><strong>safe</strong>',
                 encoding="utf-8",
             )
             (root / "tingledoculate.toml").write_text(
                 '[site]\nsource = "docs"\noutput = "site"\n'
                 '[markdown]\nhtml = true\n'
-                '[highlight]\nenabled = true\ntheme = "monokai"\n',
+                '[highlight]\nenabled = true\ntheme = "monokai"\n'
+                '[icons]\ndefault_set = "lucide"\n',
                 encoding="utf-8",
             )
 
@@ -99,6 +100,7 @@ class BuildTests(unittest.TestCase):
             page = (root / "site" / "index.html").read_text(encoding="utf-8")
             css = (root / "site" / "assets" / "tingledoculate.css").read_text(encoding="utf-8")
             self.assertIn('style="color:#FF00FF"', page)
+            self.assertIn('class="td-icon td-icon-lucide"', page)
             self.assertIn("<strong>safe</strong>", page)
             self.assertNotIn("alert(1)", page)
             self.assertIn('class="k"', page)
