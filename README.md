@@ -117,11 +117,11 @@ When `[markdown].html = true`, basic raw HTML is accepted and sanitized. Common 
 Kennels are special fenced blocks for supported content that TingleDoculate renders visually instead of displaying as source code. The leading pipe distinguishes a kennel from an ordinary Markdown code fence:
 
 ```md
-|\`\`\`mermaid
+|```mermaid
 graph TD
     A[Markdown] --> B[TingleDoculate]
     B --> C[Rendered website]
-|\`\`\`
+|```
 ```
 
 The first renderer supports Mermaid `graph TD` and `flowchart TD` diagrams with basic rectangular, rounded, and diamond nodes, directed arrows, and labeled edges. Diagrams are rendered to self-contained SVG during the build; the published site does not load Mermaid from a CDN or execute diagram source in the browser. Unsupported Mermaid syntax is shown with an explanatory message and its source.
