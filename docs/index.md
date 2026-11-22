@@ -304,7 +304,7 @@ default_set = "lucide" # "lucide" or "material"
 
 For example, with Material selected as the default, `<icon="Sun" set="lucide">` still requests Lucide. Icons inherit `currentColor` and use the surrounding text size. SVGs are bundled and inserted during the build; the published site does not load an icon CDN or JavaScript icon package.
 
-The current built-in catalogue is intentionally small: Lucide provides `Sun`, `House`, `Moon`, `Search`, and `BookOpen`; Material provides `home`, `search`, and `light_mode`. Unknown names render a visible fallback instead of silently disappearing. Third-party licensing is documented in [Third-party notices](../THIRD_PARTY_NOTICES.md).
+The current built-in catalogue is intentionally small: Lucide provides `Sun`, `House`, `Moon`, `Search`, and `BookOpen`; Material provides `home`, `search`, and `light_mode`. Unknown names render a visible fallback instead of silently disappearing. Lucide artwork is ISC-licensed (with Feather-derived icons under MIT), while Material artwork is Apache-2.0. These are separate from TingleDoculate’s MIT license. See the [third-party notices in the repository](https://github.com/alert-bake/TingleDoculate/blob/main/THIRD_PARTY_NOTICES.md).
 
 ### Raw HTML
 
