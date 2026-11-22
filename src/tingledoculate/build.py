@@ -56,6 +56,7 @@ def build(root: Path, config_path: Path | None = None, force: bool = False) -> d
     theme_config = config.get("theme", {})
     markdown_config = config.get("markdown", {})
     highlight_config = config.get("highlight", {})
+    icon_config = config.get("icons", {})
     source_dir = (root / site_config.get("source", "docs")).resolve()
     output_dir = (root / site_config.get("output", "site")).resolve()
     cache_dir = root / ".tingledoculate"
@@ -101,6 +102,7 @@ def build(root: Path, config_path: Path | None = None, force: bool = False) -> d
                     "theme": theme_config,
                     "markdown": markdown_config,
                     "highlight": highlight_config,
+                    "icons": icon_config,
                     "nav": nav,
                 },
                 sort_keys=True,
@@ -139,7 +141,7 @@ def build(root: Path, config_path: Path | None = None, force: bool = False) -> d
             skipped += 1
         else:
             markdown = source.read_text(encoding="utf-8")
-            body = rewrite_markdown_links(render_markdown(parser, markdown, markdown_config))
+            body = rewrite_markdown_links(render_markdown(parser, markdown, markdown_config, icon_config))
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_text(
                 render_page(title, site_title, description, body, nav, PurePosixPath(output_relative.as_posix()), theme_config),
