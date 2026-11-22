@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import html
 import re
 from pathlib import PurePosixPath
@@ -15,22 +14,24 @@ from pygments.token import STANDARD_TYPES
 from pygments.util import ClassNotFound
 
 
-_MARKDOWN_LINK = re.compile(r'(?P<prefix>href=["\\'])(?P<url>[^"\\']+\\.md)(?P<suffix>(?:#[^"\\']*)?["\\'])', re.IGNORECASE)
+_MARKDOWN_LINK = re.compile(r"(?P<prefix>href=[\"'])(?P<url>[^\"']+\.md)(?P<suffix>(?:#[^\"']*)?[\"'])", re.IGNORECASE)
 _TAGS = re.compile(r"<[^>]+>")
-_WHITESPACE = re.compile(r"\\s+")
-_COLOR_OPEN = re.compile(r'<color=["\\'](#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?(?:[0-9a-fA-F]{2})?|[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?(?:[0-9a-fA-F]{2})?)["\\']>', re.IGNORECASE)
-_INLINE_CODE = re.compile(r"(`+)(.+?)\\1")
+_WHITESPACE = re.compile(r"\s+")
+_HEX_COLOR = r"(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})"
+_COLOR_OPEN = re.compile(r'<color=["\'](#?' + _HEX_COLOR + r')["\']>', re.IGNORECASE)
+_COLOR_PLACEHOLDER = re.compile(r"TINGLECOLOROPEN(" + _HEX_COLOR + r")TINGLE", re.IGNORECASE)
+_INLINE_CODE = re.compile(r"(\x60+)(.+?)\1")
 
 
 def _expand_color_tags(markdown: str) -> str:
-    """Translate HTMD color tags without touching fenced or inline code."""
+    """Replace HTMD color tags with safe placeholders, skipping code."""
     output: list[str] = []
     fence_char = ""
     fence_size = 0
 
     for line in markdown.splitlines(keepends=True):
         stripped = line.lstrip()
-        fence = re.match(r"(`{3,}|~{3,})", stripped)
+        fence = re.match(r"(\x60{3,}|~{3,})", stripped)
         if fence:
             marker = fence.group(1)
             if not fence_char:
@@ -46,10 +47,10 @@ def _expand_color_tags(markdown: str) -> str:
 
         def transform(segment: str) -> str:
             segment = _COLOR_OPEN.sub(
-                lambda match: f'<span style="color:{match.group(1) if match.group(1).startswith("#") else "#" + match.group(1)}">',
+                lambda match: "TINGLECOLOROPEN" + match.group(1).lstrip("#") + "TINGLE",
                 segment,
             )
-            return re.sub(r"</color\\s*>", "</span>", segment, flags=re.IGNORECASE)
+            return re.sub(r"</color\s*>", "TINGLECOLORCLOSE", segment, flags=re.IGNORECASE)
 
         pieces = _INLINE_CODE.split(line)
         for index, piece in enumerate(pieces):
@@ -63,7 +64,7 @@ def _highlighter(highlight_config: dict):
     guess = bool(highlight_config.get("guess_language", False))
     style = str(highlight_config.get("theme", "monokai"))
     if enabled:
-        get_style_by_name(style)  # Fail early with a useful error for an invalid theme.
+        get_style_by_name(style)
 
     def render(code: str, language: str, _attrs: str) -> str:
         if not enabled or not language:
@@ -77,8 +78,7 @@ def _highlighter(highlight_config: dict):
                 lexer = guess_lexer(code)
             except ClassNotFound:
                 return ""
-        formatter = HtmlFormatter(style=style, nowrap=True)
-        return pygments_highlight(code, lexer, formatter)
+        return pygments_highlight(code, lexer, HtmlFormatter(style=style, nowrap=True))
 
     return render
 
@@ -140,9 +140,14 @@ def render_markdown(
     markdown: str,
     markdown_config: dict | None = None,
 ) -> str:
-    """Render Markdown plus HTMD conveniences, sanitizing enabled raw HTML."""
+    """Render Markdown and replace HTMD color placeholders with safe spans."""
     config = markdown_config or {}
     rendered = parser.render(_expand_color_tags(markdown))
+    rendered = _COLOR_PLACEHOLDER.sub(
+        lambda match: '<span style="color:#' + match.group(1) + '">',
+        rendered,
+    )
+    rendered = rendered.replace("TINGLECOLORCLOSE", "</span>")
     if config.get("html", False):
         return sanitize_html_fragment(rendered)
     return rendered
@@ -167,7 +172,7 @@ def plain_text(rendered_html: str) -> str:
 def page_title(markdown: str, fallback: str) -> str:
     """Use the first Markdown H1 as the page title, falling back to its filename."""
     for line in markdown.splitlines():
-        match = re.match(r"^#\\s+(.+?)\\s*#*\\s*$", line)
+        match = re.match(r"^#\s+(.+?)\s*#*\s*$", line)
         if match:
             return match.group(1).strip()
     return fallback.replace("-", " ").replace("_", " ").title()
