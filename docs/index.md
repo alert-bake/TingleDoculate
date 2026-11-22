@@ -16,6 +16,8 @@ It is a lightweight Python build tool. The generated website does not need Pytho
 - [Quick start](#quick-start)
 - [Markdown support](#markdown-support)
 - [HTMD](#htmd-hypertext-markdown)
+  - [Color tags](#color-tags)
+  - [Icon tags](#icon-tags)
 - [Kennels](#kennels)
 - [Syntax highlighting](#syntax-highlighting)
 - [Navigation and page structure](#navigation-and-page-structure)
@@ -58,7 +60,7 @@ TingleDoculate aims to keep the output simple: ordinary static web files, with n
 |---|---|
 | 1. Discover | Finds Markdown files under the configured source directory. |
 | 2. Title | Uses the first H1 as the page title, or derives one from the filename. |
-| 3. Parse | Converts Markdown, HTMD color tags, Kennels, and code blocks into HTML. |
+| 3. Parse | Converts Markdown, HTMD color and icon tags, Kennels, and code blocks into HTML. |
 | 4. Link | Rewrites local Markdown page links to their generated HTML destinations. |
 | 5. Layout | Wraps each page in the responsive site shell and adds navigation. |
 | 6. Assets | Writes the stylesheet, JavaScript, search index, and copied user assets. |
@@ -275,6 +277,34 @@ Accepted colors are hexadecimal:
 Close the tag with `</color>`. Color tags are converted to inline spans during rendering. They work even when raw HTML is disabled.
 
 Color tags inside ordinary fenced code, Kennels, and inline code are intended to remain literal source rather than being interpreted as formatting.
+
+### Icon tags
+
+Insert a bundled icon with one self-contained tag, similar to an image:
+
+```md
+<icon="Sun">
+<icon="House">
+<icon="home" set="material">
+```
+
+The tag inserts an inline SVG at that position. It is not an opening/closing pair. Icon names are case-insensitive; Lucide names use their familiar PascalCase spelling or kebab-case form. Material names use lowercase snake_case or kebab-case.
+
+Configure the default set in `tingledoculate.toml`:
+
+```toml
+[icons]
+enabled = true
+default_set = "lucide" # "lucide" or "material"
+```
+
+- `enabled`: enables or disables HTMD icon tags. Defaults to `true`.
+- `default_set`: icon set used when a tag does not specify `set`. Defaults to `"lucide"`.
+- `set`: optional per-tag override, either `"lucide"` or `"material"`.
+
+For example, with Material selected as the default, `<icon="Sun" set="lucide">` still requests Lucide. Icons inherit `currentColor` and use the surrounding text size. SVGs are bundled and inserted during the build; the published site does not load an icon CDN or JavaScript icon package.
+
+The current built-in catalogue is intentionally small: Lucide provides `Sun`, `House`, `Moon`, `Search`, and `BookOpen`; Material provides `home`, `search`, and `light_mode`. Unknown names render a visible fallback instead of silently disappearing. Third-party licensing is documented in [Third-party notices](../THIRD_PARTY_NOTICES.md).
 
 ### Raw HTML
 
@@ -529,9 +559,9 @@ TingleDoculate reads TOML configuration from `tingledoculate.toml` in the curren
 |---|---|---|
 | `html` | `false` | Allow raw HTML input, sanitized before it is written to the page. |
 
-HTMD color tags work regardless of this setting.
+HTMD color and icon tags work regardless of this setting.
 
-### `[highlight]`
+### `[icons]`\n\n| Setting | Default | Meaning |\n|---|---|---|\n| `enabled` | `true` | Enable or disable HTMD icon tags. |\n| `default_set` | `"lucide"` | Default icon catalogue: `"lucide"` or `"material"`. |\n\n### `[highlight]`
 
 | Setting | Default | Meaning |
 |---|---|---|
