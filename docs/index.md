@@ -36,7 +36,7 @@ It is a lightweight Python build tool. The generated website does not need Pytho
 TingleDoculate currently provides:
 
 - Markdown-to-HTML page rendering.
-- HTMD color tags for inline text coloring.
+- HTMD color tags and inline SVG icon tags.
 - Kennels: special fenced blocks that render supported content instead of showing source.
 - A built-in static Mermaid flowchart renderer.
 - Pygments syntax highlighting generated at build time.
@@ -137,6 +137,10 @@ html = true
 enabled = true
 theme = "monokai"
 guess_language = false
+
+[icons]
+enabled = true
+default_set = "lucide"
 
 [theme]
 default_mode = "dark"
