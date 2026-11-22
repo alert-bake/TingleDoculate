@@ -200,4 +200,4 @@ tingledoculate build
 
 ## License
 
-TingleDoculate’s original code is licensed under the MIT License. See [LICENSE](LICENSE) for the full license text. Bundled third-party icon artwork is separately licensed; it is not relicensed under MIT. See [THIRD_PARTY_NOTICES.md) for details.
+TingleDoculate’s original code is licensed under the MIT License. See [LICENSE](LICENSE) for the full license text. Bundled third-party icon artwork is separately licensed; it is not relicensed under MIT. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
