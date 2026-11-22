@@ -164,7 +164,7 @@ def make_markdown_parser(
         return True
 
     parser.block.ruler.before("fence", "kennel", kennel_rule, {"alt": ["paragraph", "reference", "blockquote", "list"]})
-    def render_kennel_token(tokens, idx, options, env):
+    def render_kennel_token(self, tokens, idx, options, env):
         rendered = render_kennel(tokens[idx].info, tokens[idx].content)
         kennels = env.setdefault("_tingledoculate_kennels", [])
         placeholder = f"TINGLEKENNELINTERNAL{len(kennels)}END"
