@@ -50,10 +50,10 @@ class BuildTests(unittest.TestCase):
             (docs / "index.md").write_text("# Home", encoding="utf-8")
             config = root / "tingledoculate.toml"
             config.write_text(
-                '[site]\\nsource = "docs"\\noutput = "site"\\n'
-                '[theme]\\ndefault_mode = "light"\\n'
-                '[theme.dark]\\nbackground = "#121212"\\n'
-                '[theme.light]\\nbackground = "#FAFAFA"\\n',
+                '[site]\nsource = "docs"\noutput = "site"\n'
+                '[theme]\ndefault_mode = "light"\n'
+                '[theme.dark]\nbackground = "#121212"\n'
+                '[theme.light]\nbackground = "#FAFAFA"\n',
                 encoding="utf-8",
             )
 
@@ -65,9 +65,9 @@ class BuildTests(unittest.TestCase):
             self.assertEqual(first["rendered"], 1)
 
             config.write_text(
-                '[site]\\nsource = "docs"\\noutput = "site"\\n'
-                '[theme]\\ndefault_mode = "dark"\\n'
-                '[theme.dark]\\nbackground = "#131313"\\n',
+                '[site]\nsource = "docs"\noutput = "site"\n'
+                '[theme]\ndefault_mode = "dark"\n'
+                '[theme.dark]\nbackground = "#131313"\n',
                 encoding="utf-8",
             )
             second = build(root)
@@ -81,16 +81,17 @@ class BuildTests(unittest.TestCase):
             root = Path(temporary)
             docs = root / "docs"
             docs.mkdir()
+            fence = chr(96) * 3
             (docs / "index.md").write_text(
-                '# Aizo\\n\\n<color="FF00FF">pink</color>\\n\\n'
-                '```python\\nprint("hello")\\n```\\n\\n'
-                '<script>alert(1)</script><strong>safe</strong>',
+                '# Aizo\n\n<color="FF00FF">pink</color>\n\n'
+                + fence + 'python\nprint("hello")\n' + fence + '\n\n'
+                + '<script>alert(1)</script><strong>safe</strong>',
                 encoding="utf-8",
             )
             (root / "tingledoculate.toml").write_text(
-                '[site]\\nsource = "docs"\\noutput = "site"\\n'
-                '[markdown]\\nhtml = true\\n'
-                '[highlight]\\nenabled = true\\ntheme = "monokai"\\n',
+                '[site]\nsource = "docs"\noutput = "site"\n'
+                '[markdown]\nhtml = true\n'
+                '[highlight]\nenabled = true\ntheme = "monokai"\n',
                 encoding="utf-8",
             )
 
@@ -102,6 +103,25 @@ class BuildTests(unittest.TestCase):
             self.assertNotIn("<script>", page)
             self.assertIn('class="k"', page)
             self.assertIn("pre code .k", css)
+
+    def test_htmd_color_works_when_raw_html_is_disabled(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            docs = root / "docs"
+            docs.mkdir()
+            (docs / "index.md").write_text(
+                '<color="FF00FF">pink</color>\n\n<span>raw HTML</span>',
+                encoding="utf-8",
+            )
+            (root / "tingledoculate.toml").write_text(
+                '[site]\nsource = "docs"\noutput = "site"\n',
+                encoding="utf-8",
+            )
+
+            build(root)
+            page = (root / "site" / "index.html").read_text(encoding="utf-8")
+            self.assertIn('style="color:#FF00FF"', page)
+            self.assertIn("&lt;span&gt;raw HTML&lt;/span&gt;", page)
 
 
 if __name__ == "__main__":
