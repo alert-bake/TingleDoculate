@@ -99,19 +99,12 @@ def sanitize_html_fragment(rendered_html: str) -> str:
     tags = set(nh3.ALLOWED_TAGS) | {
         "center", "code", "div", "h1", "h2", "h3", "h4", "h5", "h6",
         "hr", "kbd", "pre", "s", "span", "sub", "sup", "u",
-        "details", "summary", "mark", "small", "table", "thead", "figure", "svg", "g", "rect", "path", "polygon", "text", "defs", "marker",
+        "details", "summary", "mark", "small", "table", "thead",
         "tbody", "tr", "th", "td",
     }
     attributes = {tag: set(values) for tag, values in nh3.ALLOWED_ATTRIBUTES.items()}
     attributes.setdefault("*", set()).add("style")
     attributes.setdefault("span", set()).add("class")
-    attributes.setdefault("svg", set()).update({"xmlns", "class", "role", "aria-label", "viewbox", "width", "height"})
-    attributes.setdefault("g", set()).update({"class", "fill", "stroke", "stroke-width", "marker-end"})
-    attributes.setdefault("rect", set()).update({"class", "x", "y", "width", "height", "rx"})
-    attributes.setdefault("path", set()).update({"d", "fill"})
-    attributes.setdefault("polygon", set()).update({"class", "points"})
-    attributes.setdefault("text", set()).update({"class", "x", "y", "text-anchor", "fill", "stroke"})
-    attributes.setdefault("marker", set()).update({"id", "markerwidth", "markerheight", "refx", "refy", "orient"})
     token_classes = set(STANDARD_TYPES.values()) | {"hll", "linenos"}
     return nh3.clean(
         rendered_html,
@@ -171,7 +164,14 @@ def make_markdown_parser(
         return True
 
     parser.block.ruler.before("fence", "kennel", kennel_rule, {"alt": ["paragraph", "reference", "blockquote", "list"]})
-    parser.add_render_rule("kennel", lambda tokens, idx, options, env: render_kennel(tokens[idx].info, tokens[idx].content))
+    def render_kennel_token(tokens, idx, options, env):
+        rendered = render_kennel(tokens[idx].info, tokens[idx].content)
+        kennels = env.setdefault("_tingledoculate_kennels", [])
+        placeholder = f"TINGLEKENNELINTERNAL{len(kennels)}END"
+        kennels.append((placeholder, rendered))
+        return placeholder
+
+    parser.add_render_rule("kennel", render_kennel_token)
     return parser
 
 
@@ -182,7 +182,8 @@ def render_markdown(
 ) -> str:
     """Render Markdown and replace HTMD color placeholders with safe spans."""
     config = markdown_config or {}
-    rendered = parser.render(_expand_color_tags(markdown))
+    env: dict = {}
+    rendered = parser.render(_expand_color_tags(markdown), env)
     rendered = _COLOR_PLACEHOLDER.sub(
         lambda match: '<span style="color:#' + match.group(1) + '">',
         rendered,
