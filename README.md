@@ -14,7 +14,7 @@ It is designed to keep the build pipeline understandable and the generated site 
 
 - Markdown-to-HTML rendering with HTMD extensions
 - Basic raw HTML support with sanitization
-- HTMD color tags for simple inline text coloring
+- HTMD color and icon tags, rendered as safe inline SVG
 - Kennels for rendered content blocks, starting with static Mermaid flowcharts
 - Pygments syntax highlighting with configurable styles
 - Filesystem-derived navigation
@@ -110,6 +110,16 @@ This is <color="#55D6A7">green text</color>.
 
 Color tags accept 3-, 6-, or 8-digit hexadecimal colors, with or without the leading `#`. They are translated into safe inline styles during the build. Color tags inside fenced and inline code are left untouched.
 
+Insert bundled SVG icons with single tags:
+
+```md
+<icon="Sun">
+<icon="House">
+<icon="home" set="material">
+```
+
+The default icon set is Lucide. Set `[icons].default_set` to `"material"` to use the bundled Material icons by default. Individual tags can override the default with `set="lucide"` or `set="material"`. Icons are emitted as inline SVG and inherit `currentColor`. The bundled catalogue is currently a small starter set; see [Third-party notices](THIRD_PARTY_NOTICES.md) for icon licensing.
+
 When `[markdown].html = true`, basic raw HTML is accepted and sanitized. Common formatting and layout tags are supported, while scripts, event handlers, unsafe URLs, and embedded active content are removed. Inline styles are restricted to a small set of presentation properties.
 
 ### Kennels
@@ -190,4 +200,4 @@ tingledoculate build
 
 ## License
 
-TingleDoculate is licensed under the MIT License. See [LICENSE](LICENSE) for the full license text.
+TingleDoculate’s original code is licensed under the MIT License. See [LICENSE](LICENSE) for the full license text. Bundled third-party icon artwork is separately licensed; it is not relicensed under MIT. See [THIRD_PARTY_NOTICES.md) for details.
